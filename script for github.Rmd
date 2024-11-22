@@ -1,0 +1,322 @@
+---
+title: "R script for visualization and statistics analysis 'Time Series of Coastal Oceanographic Data in the Southeastern Indian Ocean, Indonesia'"
+output: html_notebook
+---
+# Import the data and needed package in R.
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(readxl)
+library(writexl)
+
+# import data
+getwd()
+df <- read_xlsx("df.xlsx", sheet = "1")
+
+nrow(df)
+df <- na.omit(df)
+unique(df$Depth)   #factor: 0m, 10m, 20m
+df$Date <- as.Date(df$Date)
+df$Depth <- as.factor(df$Depth)
+df$Temp <- as.numeric(df$Temp)
+df$Sal <- as.numeric(df$Sal)
+df$DO <- as.numeric(df$DO)
+df$pH <- as.numeric(df$pH)
+df$Transparency <- as.numeric(df$Transparency)
+```
+
+
+# Descriptve statistics result (table 2)
+We attempt to summarize and describe the features of a dataset, providing a snapshot of each environmental characteristics (Temperature, salinity, chlorophyll-a, pH, DO, and water column transparency).
+ 
+```{r}
+df$Depth <- as.factor(df$Depth)
+
+# Custom function to calculate the mode
+mode_function <- function(x) {
+  ux <- unique(x)
+  ux[which.max(tabulate(match(x, ux)))]
+}
+
+# Using dplyr for summarization
+summary_data <- df %>%
+  group_by(Depth) %>%
+  summarise(
+    mean_temp = mean(Temp, na.rm = TRUE),
+    median_temp = median(Temp, na.rm = TRUE),
+    mode_temp = mode_function(Temp),
+    min_temp = min(Temp, na.rm = TRUE),
+    max_temp = max(Temp, na.rm = TRUE),
+    sd_temp = sd(Temp, na.rm = TRUE),
+    n_Temp = n(), 
+    mean_salinity = mean(Sal, na.rm = TRUE),
+    median_salinity = median(Sal, na.rm = TRUE),
+    mode_salinity = mode_function(Sal),
+    sd_salinity = sd(Sal, na.rm = TRUE),
+    min_sal = min(Sal, na.rm = TRUE),
+    max_sal = max(Sal, na.rm = TRUE),
+    mean_Chl_a = mean(`Chl-a`, na.rm = TRUE),
+    median_Chl_a = median(`Chl-a`, na.rm = TRUE),
+    mode_Chl_a = mode_function(`Chl-a`),
+    sd_Chl_a = sd(`Chl-a`, na.rm = TRUE),
+    min_Chl_a = min(`Chl-a`, na.rm = TRUE),
+    max_Chl_a = max(`Chl-a`, na.rm = TRUE),
+    mean_pH = mean(pH, na.rm = TRUE),
+    median_pH = median(pH, na.rm = TRUE),
+    mode_pH = mode_function(pH),
+    sd_pH = sd(pH, na.rm = TRUE),
+    min_pH = min(pH, na.rm = TRUE),
+    max_pH = max(pH, na.rm = TRUE),
+    mean_DO = mean(DO, na.rm = TRUE),
+    median_DO = median(DO, na.rm = TRUE),
+    mode_DO = mode_function(DO),
+    sd_DO = sd(DO, na.rm = TRUE),
+    min_DO = min(DO, na.rm = TRUE),
+    max_DO = max(DO, na.rm = TRUE),
+    mean_transparency = mean(Transparency, na.rm = TRUE),
+    median_transparency = median(Transparency, na.rm = TRUE),
+    mode_transparency = mode_function(Transparency),
+    sd_transparency = sd(Transparency, na.rm = TRUE),
+    min_transparency = min(Transparency, na.rm = TRUE),
+    max_transparency = max(Transparency, na.rm = TRUE),
+    n_transparency = n()
+  )
+print(summary_data)
+
+```
+
+# Visualization each environmental variable
+We aim to visualize a 2-year time series of data collection (between September 2021 and August 2024).
+
+```{r}
+# Temperature
+ggplot(df, aes(x = format(Date, "%Y-%m"), y = Temp , fill = Depth)) + 
+  geom_boxplot() +
+  facet_grid(Depth ~ ., scales = "free_y") +
+  labs(title = "Temperature",
+       x = "Date (yyyy-mm)",
+       y = "Temperature",
+       fill = "Depth (m)") +
+  scale_fill_manual(values = c("lightblue", "lightgreen", "lightpink")) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 12), 
+    axis.text.y = element_text(size = 12),                         
+    axis.title.x = element_text(size = 14, margin = margin(t = 10)),  # Adds margin to x-axis title
+    axis.title.y = element_text(size = 14, margin = margin(r = 10)),  # Adds margin to y-axis title
+    plot.title = element_text(hjust = 0.5, size = 16),                # Centers and enlarges title
+    plot.title.position = "plot",                                     # Ensures title is centered on the plot
+    legend.position = "bottom",                                       
+    legend.direction = "horizontal",
+    strip.text.y = element_text(angle = 0, size = 12)  
+        )
+
+```
+
+```{r}
+# Salinity
+ggplot(df, aes(x = format(Date, "%Y-%m"), y = Sal , fill = Depth)) + 
+  geom_boxplot() +
+  facet_grid(Depth ~ ., scales = "free_y") +
+  labs(title = "Salinity",
+       x = "Date (yyyy-mm)",
+       y = "Salinity",
+       fill = "Depth (m)") +
+  scale_fill_manual(values = c("lightblue", "lightgreen", "lightpink")) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 12), 
+    axis.text.y = element_text(size = 12),                         
+    axis.title.x = element_text(size = 14, margin = margin(t = 10)),  # Adds margin to x-axis title
+    axis.title.y = element_text(size = 14, margin = margin(r = 10)),  # Adds margin to y-axis title
+    plot.title = element_text(hjust = 0.5, size = 16),                # Centers and enlarges title
+    plot.title.position = "plot",                                     # Ensures title is centered on the plot
+    legend.position = "bottom",                                       
+    legend.direction = "horizontal",
+    strip.text.y = element_text(angle = 0, size = 12)  
+        )
+
+```
+
+```{r}
+# Chlorophyll-a
+
+ggplot(df, aes(x = format(Date, "%Y-%m"), y = `Chl-a` , fill = Depth)) + 
+  geom_boxplot() +
+  facet_grid(Depth ~ ., scales = "free_y") +
+  labs(title = "Chlorophyll-a",
+       x = "Date (yyyy-mm)",
+       y = "Chlorophyll-a",
+       fill = "Depth (m)") +
+  scale_fill_manual(values = c("lightblue", "lightgreen", "lightpink")) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 12), 
+    axis.text.y = element_text(size = 12),                         
+    axis.title.x = element_text(size = 14, margin = margin(t = 10)),  # Adds margin to x-axis title
+    axis.title.y = element_text(size = 14, margin = margin(r = 10)),  # Adds margin to y-axis title
+    plot.title = element_text(hjust = 0.5, size = 16),                # Centers and enlarges title
+    plot.title.position = "plot",                                     # Ensures title is centered on the plot
+    legend.position = "bottom",                                       
+    legend.direction = "horizontal",
+    strip.text.y = element_text(angle = 0, size = 12)  
+        )
+
+```
+
+```{r}
+# pH
+
+ggplot(df, aes(x = format(Date, "%Y-%m"), y = pH , fill = Depth)) + 
+  geom_boxplot() +
+  facet_grid(Depth ~ ., scales = "free_y") +
+  labs(title = "pH",
+       x = "Date (yyyy-mm)",
+       y = "pH",
+       fill = "Depth (m)") +
+  scale_fill_manual(values = c("lightblue", "lightgreen", "lightpink")) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 12), 
+    axis.text.y = element_text(size = 12),                         
+    axis.title.x = element_text(size = 14, margin = margin(t = 10)),  # Adds margin to x-axis title
+    axis.title.y = element_text(size = 14, margin = margin(r = 10)),  # Adds margin to y-axis title
+    plot.title = element_text(hjust = 0.5, size = 16),                # Centers and enlarges title
+    plot.title.position = "plot",                                     # Ensures title is centered on the plot
+    legend.position = "bottom",                                       
+    legend.direction = "horizontal",
+    strip.text.y = element_text(angle = 0, size = 12)  
+        )
+```
+
+```{r}
+# DO
+
+ggplot(df, aes(x = format(Date, "%Y-%m"), y = DO , fill = Depth)) + 
+  geom_boxplot() +
+  facet_grid(Depth ~ ., scales = "free_y") +
+  labs(title = "Disolved oxygen",
+       x = "Date (yyyy-mm)",
+       y = "DO",
+       fill = "Depth (m)") +
+  scale_fill_manual(values = c("lightblue", "lightgreen", "lightpink")) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 12), 
+    axis.text.y = element_text(size = 12),                         
+    axis.title.x = element_text(size = 14, margin = margin(t = 10)),  # Adds margin to x-axis title
+    axis.title.y = element_text(size = 14, margin = margin(r = 10)),  # Adds margin to y-axis title
+    plot.title = element_text(hjust = 0.5, size = 16),                # Centers and enlarges title
+    plot.title.position = "plot",                                     # Ensures title is centered on the plot
+    legend.position = "bottom",                                       
+    legend.direction = "horizontal",
+    strip.text.y = element_text(angle = 0, size = 12)  
+        )
+```
+
+```{r}
+# water column transparency
+
+df1 <- filter(df, df$Depth == 0)  #only use data in water depth = 0m
+str(df1)
+unique(df1$Depth) 
+
+ggplot(df1, aes(x = format(Date, "%Y-%m"), y = df1$Transparency)) +
+  geom_boxplot() +
+  labs(title = "Transparency",
+       x = "Date",
+       y = "Transparency") +
+  scale_fill_manual(values = c("lightblue")) +
+  scale_y_discrete(breaks = seq(1, max(df1$Transparency, na.rm = TRUE), by = 0.5)) + # Set y-axis breaks
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1), 
+        plot.title = element_text(hjust = 0.5))
+
+```
+
+# Technical validation 
+
+```{r}
+# Temperature
+
+his_temp <-  ggplot(df, aes(x = Temp)) +
+  geom_histogram(binwidth = 1, fill = "light blue", color = "black") +
+  labs(title = "",
+       x = "Temperature (°C)",
+       y = "Frequency") +
+  theme_minimal()
+
+his_temp
+```
+```{r}
+# Salinity
+his_sal <-  ggplot(df, aes(x = Sal)) +
+  geom_histogram(binwidth = 1, fill = "light blue", color = "black") +
+  labs(title = "",
+       x = "Salinity (PSU)",
+       y = "Frequency") +
+  theme_minimal()
+
+his_sal
+```
+
+```{r}
+# Chlorophyll-a
+
+his_Clo <-  ggplot(df, aes(x = log(`Chl-a`))) +
+  geom_histogram(binwidth = 0.5, fill = "light blue", color = "black") +
+  labs(title = "",
+       x = "Chlorophyll-a (mg/L)",
+       y = "Frequency") +
+  theme_minimal()
+
+his_Clo
+```
+
+```{r}
+# pH
+
+his_pH <-  ggplot(df, aes(x = log(pH))) +
+  geom_histogram(binwidth = 0.015, fill = "light blue", color = "black") +
+  labs(title = "",
+       x = "pH",
+       y = "Frequency") +
+  theme_minimal()
+
+his_pH
+```
+
+
+```{r}
+# DO
+
+his_DO <-  ggplot(df, aes(x = log(DO))) +
+  geom_histogram(binwidth = 0.025, fill = "light blue", color = "black") +
+  labs(title = "",
+       x = "DO",
+       y = "Frequency") +
+  theme_minimal()
+
+his_DO
+```
+
+```{r}
+# Water column transparency
+
+his_trans <-  ggplot(df, aes(x = log(Transparency))) +
+  geom_histogram(binwidth = 0.35, fill = "light blue", color = "black") +
+  labs(title = "",
+       x = "Transparency",
+       y = "Frequency") +
+  theme_minimal()
+
+his_trans
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
